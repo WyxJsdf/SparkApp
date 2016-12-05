@@ -1,0 +1,205 @@
+{% extends 'layout.html' %}
+{% block styles %}
+
+{% endblock %}
+{% block content %}
+  <h2 class="page-header">Spark-Based Application</h2>
+  <h3>Analyse TVPrograms Data</h3>
+  <p>There are several scenes to analyse based on TVPrograms data.</p>
+  <div>
+    <ul id="myTab" class="nav nav-tabs" role="tablist">
+      <li role="presentation" class="active"><a href="#scene1" id="scene1-tab" role="tab" data-toggle="tab" aria-controls="scene1" aria-expanded="true">Scene1</a></li>
+      <li role="presentation"><a href="#scene2" id="scene2-tab" role="tab" data-toggle="tab" aria-controls="scene2">Scene2</a></li>
+      <li role="presentation"><a href="#scene3" id="scene3-tab" role="tab" data-toggle="tab" aria-controls="scene3">Scene3</a></li>
+      <li role="presentation"><a href="#scene4" id="scene4-tab" role="tab" data-toggle="tab" aria-controls="scene4">Scene4</a></li>
+      <li role="presentation"><a href="#scene5" id="scene5-tab" role="tab" data-toggle="tab" aria-controls="scene5">Scene5</a></li>
+    </ul>
+    <div id="myTabContent" class="tab-content">
+      <div role="tabpanel" class="tab-pane fade in active" id="scene1" aria-labelledBy="scene1-tab">
+        <p>This scene compute ...</p>
+        <div id="scene1-chart" style="width:100%; height:400px;"></div>
+      </div>
+      <div role="tabpanel" class="tab-pane fade" id="scene2" aria-labelledBy="scene2-tab">
+        <p>This scene comput ...</p>
+        <div class="row">
+          <div class="col-md-2">
+          <div class="btn-group">
+            <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">Analyse Type<span class="caret"></span></button>
+            <ul class="dropdown-menu" role="menu">
+              <li id="scene1_day"><a>Day</a></li>
+              <li id="scene1_quarter"><a>Quarter</a></li>
+              <li id="scene1_year"><a>Year</a></li>
+            </ul>
+          </div>
+          </div>
+          <div class="col-md-4">
+          <div class="input-group date form_datetime from_dateday" data-date="2013-11-20">
+            <span class="input-group-btn">
+              <button class="btn btn-info" type="button">FROM</button>
+            </span>
+            <input class="form-control" size="16" type="text" id="from_input_day">
+            <span class="input-group-addon"><span class="glyphicon glyphicon-remove"></span></span>
+            <span class="input-group-addon"><span class="glyphicon glyphicon-th"></span></span>
+          </div>
+          </div>
+          <div class="col-md-4">
+          <div class="input-group date form_datetime to_dateday" data-date="2014-01-01">
+            <span class="input-group-btn">
+              <button class="btn btn-info" type="button">TO</button>
+            </span>
+            <input class="form-control" size="16" type="text" id="to_input_day">
+            <span class="input-group-addon"><span class="glyphicon glyphicon-remove"></span></span>
+            <span class="input-group-addon"><span class="glyphicon glyphicon-th"></span></span>
+          </div>
+          </div>
+          <div class="col-md-1">
+            <button type="button" class="btn btn-success" id="inter_analyse">Analyse</button>
+          </div>
+        </div>
+        <div id="scene2-chart" style="width:100%; height:400px;"></div>
+      </div>
+      <div role="tabpanel" class="tab-pane fade" id="scene3" aria-labelledBy="scene3-tab">
+        <p>This scene comput ...</p>
+        <div id="scene3-chart" style="width:100%; height:400px;"></div>
+      </div>
+      <div role="tabpanel" class="tab-pane fade" id="scene4" aria-labelledBy="scene4-tab">
+        <p>This scene comput ...</p>
+        <div id="scene4-chart" style="width:100%; height:400px;"></div>
+      </div>
+      <div role="tabpanel" class="tab-pane fade" id="scene5" aria-labelledBy="scene5-tab">
+        <p>This scene comput ...</p>
+        <div id="scene5-chart" style="width:100%; height:400px;"></div>
+      </div>
+    </div>
+  </div>
+  <div class="modal fade" id="waitingModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+          <h4 class="modal-title" id="myModalLabel">Modal Title</h4>
+        </div>
+        <div class="modal-body">
+          <h4>Please Wait ...</h4>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}
+
+{% block javascripts %}
+<script type="text/javascript" src="{{ url_for('static', filename='js/amcharts.js') }}"></script>
+<script type="text/javascript" src="{{ url_for('static', filename='js/serial.js') }}"></script>
+<script type="text/javascript" src="{{ url_for('static', filename='js/scenes.js') }}"></script>
+<script>
+var scene2_day_chartData = [];
+var scene2_quarter_chartData = [];
+var scene2_year_chartData = [];
+var scene2_day_chart;
+var scene2_quarter_chart;
+var scene2_year_chart;
+var scene2_from_day_date = new Date();
+var scene2_to_day_date = new Date();
+AmCharts.ready(function () {
+  $("#scene2-tab").click(function() {
+    if (scene2_day_chartData.length == 0) {
+      $("#waitingModal").modal('show');
+      $.ajax({
+        type: "GET",
+        url: "/2",
+        contentType: 'application/json; charset=UTF-8',
+        dataType: 'json',
+        success: function(data) {
+          $("#waitingModal").modal('hide');
+          var scene2_day_data = data[0].split('[')[1].split(']')[0].split(', ');
+          var scene2_quarter_data = data[1].split('[')[1].split(']')[0].split(', ');
+          var scene2_year_data = data[2].split('[')[1].split(']')[0].split(', ');
+          scene2_day_chartData = NormalizeData(scene2_day_data);
+          scene2_quarter_chartData = NormalizeData(scene2_quarter_data);
+          scene2_year_chartData = NormalizeData(scene2_year_data);
+          scene2_day_chart = GenerateChart2(scene2_day_chartData, 'DD');
+          scene2_day_chart.write("scene2-chart");
+          scene2_day_chart.zoomToIndexes(parseInt(scene2_day_chartData.length / 2)-120, parseInt(scene2_day_chartData.length / 2) + 30);
+          $(".from_dateday").show();
+          $(".to_dateday").show();
+        },
+        error: function() {
+          $("#waitingModal").modal('hide');
+          alert("Failed to access data!");
+        }
+      });
+    }
+  });
+
+});
+
+$('#scene1_day').click(function() {
+  $(".from_dateday").show();
+  $(".to_dateday").show();
+  $("#inter_analyse").show();
+  // scene2_day_chart = GenerateChart2(scene2_day_chartData, 'DD');
+  scene2_day_chart.write("scene2-chart");
+  scene2_day_chart.zoomToIndexes(parseInt(scene2_day_chartData.length / 2)-120, parseInt(scene2_day_chartData.length / 2) + 30);
+});
+$('#scene1_quarter').click(function() {
+  $(".from_dateday").hide();
+  $(".to_dateday").hide();
+  $("#inter_analyse").hide();
+  if (typeof(scene2_quarter_chart) == "undefined") {
+    scene2_quarter_chart = GenerateChart2(scene2_quarter_chartData, 'MM');
+  }
+  scene2_quarter_chart.write("scene2-chart"); 
+});
+$('#scene1_year').click(function() {
+  $(".from_dateday").hide();
+  $(".to_dateday").hide();
+  $("#inter_analyse").hide();
+  if (typeof(scene2_year_chart) == "undefined") {
+    scene2_year_chart = GenerateChart2(scene2_year_chartData, 'YYYY');
+  }
+  scene2_year_chart.write("scene2-chart");
+});
+$("#inter_analyse").click(function() {
+  var len = scene2_day_chartData.length;
+  var min_date = scene2_day_chartData[0]["date"];
+  var max_date = scene2_day_chartData[len-1]["date"];
+  if (scene2_from_day_date >= min_date && scene2_from_day_date <= max_date) {
+    if (scene2_to_day_date >= min_date && scene2_to_day_date <= max_date) {
+      var index_0 = (scene2_from_day_date - min_date) / 86400000;
+      var index_1 = (scene2_to_day_date - min_date) / 86400000;
+      index_0 = index_0 < len ? index_0 : (len-1);
+      index_1 = index_1 < len ? index_1 : (len-1);
+      while (scene2_day_chartData[index_0]["date"] > scene2_from_day_date) {
+        index_0--;
+      }
+      while(scene2_day_chartData[index_1]["date"] > scene2_to_day_date) {
+        index_1--;
+      }
+      if (index_1 < index_0) {
+        var temp = index_0;
+        index_1 = index_0;
+        index_0 = temp;
+      }
+      // if (index_1 - index_0 < 100) {
+      //   index_0 = (index_0 - 50 > 0) ? (index_0 - 50) : 0;
+      //   index_1 = (index_1 + 50 < len) ? (index_1 + 50) : (len-1);
+      // }
+      scene2_day_chart.zoomToIndexes(index_0, index_1);
+    }
+  }
+});
+$(".from_dateday").datetimepicker({
+  format: "yyyy-MM-dd"
+}).on('changeDate', function(ev) {
+  scene2_from_day_date = ev.date;
+});
+$(".to_dateday").datetimepicker({
+  format: "yyyy-MM-dd"
+}).on('changeDate', function(ev) {
+  scene2_to_day_date = ev.date;
+});
+</script>
+{% endblock %}
